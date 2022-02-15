@@ -18,7 +18,7 @@ def get_player_info(url):
     table = soup.find(class_="infobox vcard")
     rows = soup.find_all("tr")
 
-    player_info = {}
+    player = {}
 
     for index, row in enumerate(rows):
         if index <= 1:
@@ -30,12 +30,14 @@ def get_player_info(url):
                 dict_key = row.find("th").get_text().replace("\xa0", " ").replace("\n", " ")
                 dict_value = row.find("td").get_text().replace("\xa0", " ").replace("\n", " ")
                 player_info[dict_key] = dict_value
-            except:
+
+            except Exception as e:
                 print(index)
+                print(e)
         else:
             continue
 
-    return player_info
+    return player
 
 
 for index, tr in enumerate(trs):
@@ -47,16 +49,32 @@ for index, tr in enumerate(trs):
         tds = tr.find_all("td")
         row = [td.get_text() for td in tds]
 
+        player_info["Rank"] = row[0]
         player_name = row[2]
         player_info["Name"] = player_name
+        player_info["Points"] = row[3]
 
         wiki_url = "https://en.wikipedia.org/wiki/"
         relative_url = player_name.replace(" ", "_")
         full_url = wiki_url + relative_url
-        player_info = get_player_info(full_url)
 
-        player_info["Name"] = player_name
-        player_info["Rank"] = row[0]
-        player_info["Points"] = row[3]
+        player = get_player_info(full_url)
+        for k, v in player.items():
+            player_info[k] = v
 
     player_info_list.append(player_info)
+
+
+import json
+
+def save_data(title, data):
+    with open(title, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+save_data("ATP_Player_Info_List.json", player_info_list)
+
+import pandas as pd
+
+df=pd.DataFrame(player_info_list)
+
+df.to_excel("ATP_Player_List.xlsx", index=False, sheet_name="Top150_ATP_02_14_22")
