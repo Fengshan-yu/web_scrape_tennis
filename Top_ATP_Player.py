@@ -29,7 +29,7 @@ def get_player_info(url):
             try:
                 dict_key = row.find("th").get_text().replace("\xa0", " ").replace("\n", " ")
                 dict_value = row.find("td").get_text().replace("\xa0", " ").replace("\n", " ")
-                player_info[dict_key] = dict_value
+                player[dict_key] = dict_value
 
             except Exception as e:
                 print(index)
