@@ -11,6 +11,11 @@ trs = soup.find_all("tr")
 player_info_list = []
 
 
+def clean_tag(soup):
+    for tag in soup.find_all("sup"):
+        tag.decompose()
+
+
 def get_player_info(url):
     data = requests.get(full_url).text
     soup = bs(data, "html.parser")
@@ -18,17 +23,17 @@ def get_player_info(url):
     table = soup.find(class_="infobox vcard")
     rows = soup.find_all("tr")
 
+    clean_tag(soup)
+
     player = {}
 
     for index, row in enumerate(rows):
-        if index <= 1:
-            continue
-        elif len(row) == 1:
+        if len(row) == 1:
             continue
         elif index <= 12:
             try:
-                dict_key = row.find("th").get_text().replace("\xa0", " ").replace("\n", " ")
-                dict_value = row.find("td").get_text().replace("\xa0", " ").replace("\n", " ")
+                dict_key = row.find("th").get_text(" ", strip=True).replace("\xa0", " ").replace("\n", " ")
+                dict_value = row.find("td").get_text(" ", strip=True).replace("\xa0", " ").replace("\n", " ")
                 player[dict_key] = dict_value
 
             except Exception as e:
@@ -45,6 +50,7 @@ for index, tr in enumerate(trs):
 
     if index == 0:
         continue
+
     else:
         tds = tr.find_all("td")
         row = [td.get_text() for td in tds]
@@ -64,17 +70,18 @@ for index, tr in enumerate(trs):
 
     player_info_list.append(player_info)
 
-
 import json
+
 
 def save_data(title, data):
     with open(title, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
+
 save_data("ATP_Player_Info_List.json", player_info_list)
 
 import pandas as pd
 
-df=pd.DataFrame(player_info_list)
+df = pd.DataFrame(player_info_list)
 
 df.to_excel("ATP_Player_List.xlsx", index=False, sheet_name="Top150_ATP_02_14_22")
